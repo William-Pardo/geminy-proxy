@@ -9,6 +9,7 @@ module.exports = async (req, res) => {
   const { prompt } = req.body;
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
+    console.error('API key missing');
     res.status(500).json({ error: 'API key missing' });
     return;
   }
@@ -23,8 +24,14 @@ module.exports = async (req, res) => {
       }
     );
     const data = await response.json();
+    if (!response.ok) {
+      console.error('Gemini API error:', data);
+      res.status(response.status).json({ error: 'Gemini API error', details: data });
+      return;
+    }
     res.status(200).json(data);
   } catch (err) {
+    console.error('Request failed:', err);
     res.status(500).json({ error: 'Gemini request failed', details: err.message });
   }
 };
